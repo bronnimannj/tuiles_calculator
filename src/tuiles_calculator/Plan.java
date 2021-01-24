@@ -12,6 +12,7 @@ public class Plan {
 
 	public Plan(Point P1, Point P2)
 	{
+		
 		Px1 = P1.details()[0];
 		Px2 = P2.details()[0];
 		Py1 = P1.details()[1];
@@ -45,6 +46,30 @@ public class Plan {
 		return name;
 	}
 
+
+	public boolean check_equal(Plan P) {
+		return( (plana() == P.plana()) && 
+				(planb() == P.planb()) && 
+				(planc() == P.planc()) && 
+				(pland() == P.pland())  );
+	}
+
+	public boolean check_parallel(Plan P) {
+		
+		double lambda = 0.0;
+		if(P.plana() != 0) {
+			lambda = plana() / P.plana();
+			return( planb() / P.planb() == lambda &&
+					planc() / P.planc() == lambda );
+		}else if(P.planb() != 0) {
+			lambda = planb() / P.planb();
+			return(plana() == 0 &&  planc() / P.planc() == lambda );
+		}else {
+			return(plana() == 0 && planb() == 0);
+		}
+	}
+	
+	
 	public double[] plan_coordonnees() {
 
 		double[] coordinates = new double[4];

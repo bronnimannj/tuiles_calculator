@@ -38,6 +38,11 @@ public class Point {
 		return name;
 	}
 		
+	public boolean check_equal(Point P) {
+		return( (X == P.details()[0]) && 
+				(Y == P.details()[1]) && 
+				((double)Math.round(angle*1000)/1000 == (double)Math.round(P.details()[2]*1000)/1000 ) );
+	}
 	
 	public String point_details() {
 		return(name +"( " + String.valueOf(X) + " ; " +
