@@ -23,6 +23,9 @@ public class Tuiles_GUI extends JFrame {
 	public Plan[] plans;	
 	public DroiteIntersect[][] droites;
 
+	// for the input
+	String InputFormat = "Default";
+	
 	// Frame creation
 	public Tuiles_GUI() {
 
@@ -92,6 +95,15 @@ public class Tuiles_GUI extends JFrame {
 		Msources.add(Msourceabout);
 
 
+		// Menu/Examples
+		JMenu Mexamples = new JMenu("Examples");
+		menuBar.add(Mexamples);
+		JMenuItem Mexampledefault = new JMenuItem("Default");
+		Mexamples.add(Mexampledefault);
+		JMenuItem Mexample1 = new JMenuItem("Example1");		
+		Mexamples.add(Mexample1);
+		
+		
 		// Titles of each Panel		
 		JLabel LbTopview = new JLabel("Vue en plan");
 		LbTopview.setFont(new Font("Tahoma", Font.BOLD, 14));
@@ -107,51 +119,42 @@ public class Tuiles_GUI extends JFrame {
 		tableinput.setRowSelectionAllowed(false);
 		tableinput.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		tableinput.setBorder(null);
+		
+		
 		tableinput.setModel(new DefaultTableModel(
-				new Object[][] {
-					{"A",   null, null, null, false},
-					{"B",   null, null, null, false},
-					{"C",   null, null, null, false},
-					{"D",   null, null, null, false},
-					{"E",   null, null, null, false},
-					{"F",   null, null, null, false},
-					{"G",   null, null, null, false},
-					{"H",   null, null, null, false},
-					{"I",   null, null, null, false},
-					{"J",   null, null, null, false},
-					{"K",   null, null, null, false},
-					{"...", null, null, null, false},
-					{null,  null, null, null, false},
-					{null,  null, null, null, false},
-					{null,  null, null, null, false},
-					{null,  null, null, null, false},
-					{null,  null, null, null, false},
-					{null,  null, null, null, false},
-					{null,  null, null, null, false},
-					{null,  null, null, null, false},
-					{null,  null, null, null, false},
-					{null,  null, null, null, false},
-					{null,  null, null, null, false},
-					{null,  null, null, null, false},
-					{null,  null, null, null, false},
-					{null,  null, null, null, false},
-					{null,  null, null, null, false},
-					{null,  null, null, null, false},
-					{null,  null, null, null, false},
-					{null,  null, null, null, false}},
-				new String[] {
-						"#point", "Coordonn\u00E9e X", "Coordonn\u00E9e Y", "Pente", "%/\u00B0"
-					}
-				) {
+				new ExamplesInput(InputFormat).table(),
+				new String[] { "#point", "Coordonn\u00E9e X", "Coordonn\u00E9e Y", "Pente", "%/\u00B0"	}	) {
 			@SuppressWarnings("rawtypes")
-			Class[] columnTypes = new Class[] {
-					String.class, Double.class, Double.class, Double.class, Boolean.class
-			};
+			Class[] columnTypes = new Class[] {	String.class, Double.class, Double.class, Double.class, Boolean.class};
 			@SuppressWarnings({ "rawtypes", "unchecked" })
-			public Class getColumnClass(int columnIndex) {
-				return columnTypes[columnIndex];
-			}
+			public Class getColumnClass(int columnIndex) {	return columnTypes[columnIndex]; }
 		});
+
+		Mexample1.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) { 	
+				tableinput.setModel(new DefaultTableModel(
+						new ExamplesInput("Example1").table(),
+						new String[] { "#point", "Coordonn\u00E9e X", "Coordonn\u00E9e Y", "Pente", "%/\u00B0"	}	) {
+					@SuppressWarnings("rawtypes")
+					Class[] columnTypes = new Class[] {	String.class, Double.class, Double.class, Double.class, Boolean.class};
+					@SuppressWarnings({ "rawtypes", "unchecked" })
+					public Class getColumnClass(int columnIndex) {	return columnTypes[columnIndex]; }
+				}); 
+			}   
+		});
+		Mexampledefault.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) { 	
+				tableinput.setModel(new DefaultTableModel(
+						new ExamplesInput("Default").table(),
+						new String[] { "#point", "Coordonn\u00E9e X", "Coordonn\u00E9e Y", "Pente", "%/\u00B0"	}	) {
+					@SuppressWarnings("rawtypes")
+					Class[] columnTypes = new Class[] {	String.class, Double.class, Double.class, Double.class, Boolean.class};
+					@SuppressWarnings({ "rawtypes", "unchecked" })
+					public Class getColumnClass(int columnIndex) {	return columnTypes[columnIndex]; }
+				}); 
+			}   
+		});
+		
 		tableinput.getColumnModel().getColumn(0).setResizable(false);
 		tableinput.getColumnModel().getColumn(0).setPreferredWidth(44);
 		tableinput.getColumnModel().getColumn(1).setResizable(false);
@@ -202,7 +205,7 @@ public class Tuiles_GUI extends JFrame {
 				get_Droites();
 			}
 		});
-
+		
 	}
 
 	// (re) - initialise the plot
@@ -240,8 +243,8 @@ public class Tuiles_GUI extends JFrame {
 
 	public void get_nb_points() {
 		// reinitialise the nb of points
-		nb_points = 0;
-		for(int i = 0; i<30; i++ ) {
+		nb_points = 0;		
+		for(int i = 0; i < tableinput.getRowCount(); i++ ) {
 			if(check_line_complete(i)) {
 				nb_points += 1;
 			}else {
@@ -262,7 +265,7 @@ public class Tuiles_GUI extends JFrame {
 		for(int i = 0; i<nb_points; i++ ) {
 			txtOutput.append( "Point nb " + String.valueOf( i+1 ) +" : " );
 			// reading
-			points[i] = read_line( i);
+			points[i] = read_line( i );
 
 			// outputing
 			Pointsx[i] = points[i].details()[0];
