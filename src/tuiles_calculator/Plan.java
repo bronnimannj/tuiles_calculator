@@ -8,14 +8,16 @@ public class Plan {
 
 	private double Px1, Px2, Py1, Py2;
 	private double angle;
+	private String name;
 
-	public Plan(double x1, double y1, double x2, double y2, double alpha)
+	public Plan(Point P1, Point P2)
 	{
-		Px1 = x1;
-		Px2 = x2;
-		Py1 = y1;
-		Py2 = y2;
-		angle = Math.toRadians(alpha);
+		Px1 = P1.details()[0];
+		Px2 = P2.details()[0];
+		Py1 = P1.details()[1];
+		Py2 = P2.details()[1];
+		angle = P2.details()[2];
+		name = P1.point_name() + "->" + P2.point_name();
 	}
 
 	// donne la partie "a" de ax+by+cz+d = 0
@@ -31,7 +33,7 @@ public class Plan {
 	// donne la partie "c" de ax+by+cz+d = 0
 	public double planc() {
 		double d = 1 / Math.tan(angle) * Math.sqrt( Math.pow(Py2 - Py1,2) + Math.pow(Px2 - Px1,2) ) ;
-		return (Math.round(d * 1000) / 1000);		
+		return ((double)Math.round(d * 1000) / 1000);		
 	}
 
 	// donne la partie "d" de ax+by+cz+d = 0
@@ -39,5 +41,28 @@ public class Plan {
 		return ( Py1 * Px2 - Px1 * Py2  );		
 	}
 
+	public String plan_name() {
+		return name;
+	}
+
+	public double[] plan_coordonnees() {
+
+		double[] coordinates = new double[4];
+
+		coordinates[0] = plana();
+		coordinates[1] = planb();
+		coordinates[2] = planc();
+		coordinates[3] = pland();
+
+		return coordinates;
+	}
 	
+
+	public String plan_details() {
+		return(name + ": "+
+				String.valueOf(  (double)Math.round(plana()*1000)/1000 ) + "*x  +  " +
+				String.valueOf(  (double)Math.round(planb()*1000)/1000 ) + "*y  +  " +
+				String.valueOf(  (double)Math.round(planc()*1000)/1000 ) + "*z  +  " +
+				String.valueOf(  (double)Math.round(pland()*1000)/1000 ) + " = 0");
+	}
 }
