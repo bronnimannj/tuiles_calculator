@@ -22,10 +22,18 @@ public class Tuiles_GUI extends JFrame {
 	double[] Pointsy;
 	public Plan[] plans;	
 	public DroiteIntersect[][] droites;
+	public boolean[][] real_droites;
+
+	// for the plots
+	private double min_x_scale = -1;
+	private double max_x_scale = 1;
+	private double min_y_scale = -1;
+	private double max_y_scale = 1;
 
 	// for the input
 	String InputFormat = "Default";
-	
+	double unit_to_divide = 1000.0;
+
 	// Frame creation
 	public Tuiles_GUI() {
 
@@ -102,8 +110,8 @@ public class Tuiles_GUI extends JFrame {
 		Mexamples.add(Mexampledefault);
 		JMenuItem Mexample1 = new JMenuItem("Example1");		
 		Mexamples.add(Mexample1);
-		
-		
+
+
 		// Titles of each Panel		
 		JLabel LbTopview = new JLabel("Vue en plan");
 		LbTopview.setFont(new Font("Tahoma", Font.BOLD, 14));
@@ -119,8 +127,8 @@ public class Tuiles_GUI extends JFrame {
 		tableinput.setRowSelectionAllowed(false);
 		tableinput.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		tableinput.setBorder(null);
-		
-		
+
+
 		tableinput.setModel(new DefaultTableModel(
 				new ExamplesInput(InputFormat).table(),
 				new String[] { "#point", "Coordonn\u00E9e X", "Coordonn\u00E9e Y", "Pente", "%/\u00B0"	}	) {
@@ -154,7 +162,7 @@ public class Tuiles_GUI extends JFrame {
 				}); 
 			}   
 		});
-		
+
 		tableinput.getColumnModel().getColumn(0).setResizable(false);
 		tableinput.getColumnModel().getColumn(0).setPreferredWidth(44);
 		tableinput.getColumnModel().getColumn(1).setResizable(false);
@@ -174,7 +182,7 @@ public class Tuiles_GUI extends JFrame {
 		getContentPane().add(scrollPane_1);
 
 		// Plot area
-		draw_init(true);
+		calc_init(true);
 
 		// Area for outputs
 		txtOutput = new JTextArea();
@@ -198,18 +206,44 @@ public class Tuiles_GUI extends JFrame {
 		btnNewButton.setBounds(430, 375, 100, 25);
 		getContentPane().add(btnNewButton);
 		btnNewButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {				
+			public void actionPerformed(ActionEvent e) {
+				calc_init(false);				
 				get_nb_points();
 				get_Points();
-				get_Plans();
-				get_Droites();
+
+				if(nb_points >= 1) {
+
+					// scale the plots
+					min_x_scale = min_vec(Pointsx) - 0.1 * ( max_vec(Pointsx) - min_vec(Pointsx));
+					max_x_scale = max_vec(Pointsx) + 0.1 * ( max_vec(Pointsx) - min_vec(Pointsx));
+					min_y_scale = min_vec(Pointsy) - 0.1 * ( max_vec(Pointsy) - min_vec(Pointsy));
+					max_y_scale = max_vec(Pointsy) + 0.1 * ( max_vec(Pointsy) - min_vec(Pointsy));
+
+					if(max_x_scale <= min_x_scale) {max_x_scale = min_x_scale + 1;}
+					if(max_y_scale <= min_y_scale) {max_y_scale = min_y_scale + 1;}
+
+					if(nb_points >= 2) {
+						get_Plans();
+						get_Droites();
+					}
+
+					planOutput.setFixedBounds(0, min_x_scale, max_x_scale);
+					planOutput.setFixedBounds(1, min_y_scale, max_y_scale);
+
+				}else {
+					planOutput.addLegend("SOUTH");
+					planOutput.addLinePlot("Empty plot", Color.BLACK ,new double[] {0.0,0.0}, new double[] {0.0,0.0});	
+					planOutput.removeLegend();
+					planOutput.setFixedBounds(0, 0, 1);
+					planOutput.setFixedBounds(1, 0, 1);	
+				}		
 			}
 		});
-		
+
 	}
 
-	// (re) - initialise the plot
-	public void draw_init(boolean start) {
+	// (re) - initialise the plot and calculations
+	public void calc_init(boolean start) {
 		if(!start) {
 			getContentPane().remove(planOutput);
 		}
@@ -217,29 +251,30 @@ public class Tuiles_GUI extends JFrame {
 		planOutput.setBackground(Color.WHITE);
 		planOutput.setBorder(null);
 		planOutput.setBounds(580, 60, 580, 340);
-		getContentPane().add(planOutput);
-
+		getContentPane().add(planOutput);	
 	}
 
 	// test if a point has had all the details inputed
 	public boolean check_line_complete( int row) {
 
-		return( (tableinput.getValueAt(row, 0) != null) &&
-				(tableinput.getValueAt(row, 1) != null) &&
-				(tableinput.getValueAt(row, 2) != null) &&
-				(tableinput.getValueAt(row, 3) != null) &&
+		return( (tableinput.getValueAt(row, 0) != null) &
+				(tableinput.getValueAt(row, 1) != null) &
+				(tableinput.getValueAt(row, 2) != null) &
+				(tableinput.getValueAt(row, 3) != null) &
 				(tableinput.getValueAt(row, 4) != null )	);	
+
 	}
 
 	// read the line of the table and output a point
 	public Point read_line( int row) {
 		Point point = new Point( (String) tableinput.getValueAt(row, 0),
-				(Double) tableinput.getValueAt(row, 1),
-				(Double) tableinput.getValueAt(row, 2),
+				(Double) tableinput.getValueAt(row, 1)/unit_to_divide,
+				(Double) tableinput.getValueAt(row, 2)/unit_to_divide,
 				(Double) tableinput.getValueAt(row, 3),
 				(Boolean) tableinput.getValueAt(row, 4));
 		return( point );
 	}
+
 
 	public void get_nb_points() {
 		// reinitialise the nb of points
@@ -251,15 +286,15 @@ public class Tuiles_GUI extends JFrame {
 				break;
 			}
 		}
-	}
 
+	}
 	// Points reading and outputing
 	public void get_Points() {	
 
-		// reinitialisation if needed
+		// reinitialisation each time
 		Pointsx = new double[nb_points+1];
 		Pointsy = new double[nb_points+1];
-		points = new Point[nb_points];
+		points = new Point[Math.max(nb_points, 1)];
 
 		txtOutput.setText( "Vous avez donné " + String.valueOf(nb_points) + " points : \n\n" );
 		for(int i = 0; i<nb_points; i++ ) {
@@ -275,14 +310,18 @@ public class Tuiles_GUI extends JFrame {
 
 		// plot the points
 		if(nb_points > 0) {
-			draw_init(false);
 			// close the cicle
 			Pointsx[nb_points] = points[0].details()[0];
 			Pointsy[nb_points] = points[0].details()[1];	
 			planOutput.addLegend("SOUTH");
 			planOutput.addLinePlot("Points given", Color.BLACK ,Pointsx, Pointsy);	
+			planOutput.removeLegend();
 
-		}	
+		}else {
+			points[0] = new Point( "Default point", 0.0, 0.0, 0.0, true);
+			Pointsx[0] = 0;
+			Pointsy[0] = 0;			
+		}
 
 		txtOutput.append("\n\n");
 
@@ -290,13 +329,21 @@ public class Tuiles_GUI extends JFrame {
 
 
 	public void get_Plans() {
-		plans = new Plan[nb_points];
+
+		plans = new Plan[Math.max(nb_points, 1)];
 
 		if(nb_points>1) {
 			// inputs
 			for(int i = 1; i<nb_points; i++ ) {
 				plans[i-1] = new Plan(points[i-1], points[i]);
+				
+				// if new point is at distance 1 from last, replace it
+				if(points[i].point_dist(points[i-1]) == 1/unit_to_divide) {
+					points[i].set_coordonnee(0, points[i-1].details()[0]);
+					points[i].set_coordonnee(1, points[i-1].details()[1]);
+				}
 			}
+
 			plans[nb_points-1] = new Plan(points[nb_points - 1], points[0]);
 
 
@@ -305,7 +352,9 @@ public class Tuiles_GUI extends JFrame {
 			for(int i = 0; i<nb_points; i++ ) {
 				txtOutput.append(plans[i].plan_details() + "\n");
 			}
-		}else if(nb_points == 1) {
+
+		}else {
+			plans[0] = new Plan(points[0],points[0]);
 			txtOutput.append("Nous avons besoin d'au moins 2 points pour un plan");
 		}	
 
@@ -335,7 +384,8 @@ public class Tuiles_GUI extends JFrame {
 
 	// matrice triangulaire superieure où D_ij = droite d'intersection entre plan Pi et Pj
 	public void get_Droites() {
-		droites = new DroiteIntersect[nb_points][nb_points];
+		real_droites = new boolean[Math.max(nb_points, 1)][Math.max(nb_points, 1)];
+		droites = new DroiteIntersect[Math.max(nb_points, 1)][Math.max(nb_points, 1)];
 
 		// values to plot the segments
 		double[] x1  = {min_vec(Pointsx), 0.0};
@@ -347,28 +397,39 @@ public class Tuiles_GUI extends JFrame {
 			for(int i = 0; i < nb_points - 1; i++ ) {
 				for(int j = i + 1; j < nb_points; j++ ) {
 					droites[i][j] = new DroiteIntersect(plans[i], plans[j]);
+					real_droites[i][j] = droites[i][j].real_droite();
 				}
 			}	
 
 			// outputs
 			txtOutput.append("Les details des droites d'intersection entre les points sont:\n\n");
 			for(int i = 0; i < nb_points - 1; i++ ) {
+//				int j = i + 1;
 				for(int j = i + 1; j < nb_points; j++ ) {
-					txtOutput.append(droites[i][j].droite_details() + "\n");
+					if(real_droites[i][j]) {
+						txtOutput.append("Vraie droite: ");
+						txtOutput.append(droites[i][j].droite_details() + "\n");
+					} //else {txtOutput.append("Droite non utilisee: ");}
+					
 				}
 			}
 
 			// plot the droites
 			for(int i = 0; i < nb_points - 1; i++ ) {
+//				int j = i + 1;
 				for(int j = i + 1; j < nb_points; j++ ) {
-					x1[1] = (double) Math.round(droites[i][j].y_value(x1[0]) *1000)/1000;
-					x2[1] = (double) Math.round(droites[i][j].y_value(x2[0]) *1000)/1000;
+					if(real_droites[i][j]) {
+						x1[1] = (double) Math.round(droites[i][j].y_value(x1[0]) *1000)/1000;
+						x2[1] = (double) Math.round(droites[i][j].y_value(x2[0]) *1000)/1000;
 
-					planOutput.addLinePlot( droites[i][j].droite_name(),
-							new double[] {x1[0],x1[1]},new double[] {x2[0],x2[1]});
+						planOutput.addLinePlot( droites[i][j].droite_name(),Color.BLUE,
+								new double[] {x1[0],x1[1]},new double[] {x2[0],x2[1]});
+					}
 				}
 			}
 		}else {
+			droites[0][0] = new DroiteIntersect(plans[0], plans[0]);
+			real_droites[0][0] = droites[0][0].real_droite();
 			txtOutput.append("Nous avons besoin d'au moins 3 points pour des droites d'intersection");
 		}	
 

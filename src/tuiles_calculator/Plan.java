@@ -9,6 +9,8 @@ public class Plan {
 	private double Px1, Px2, Py1, Py2;
 	private double angle;
 	private String name;
+	
+	private double a,b,c,d;
 
 	public Plan(Point P1, Point P2)
 	{
@@ -18,28 +20,52 @@ public class Plan {
 		Py1 = P1.details()[1];
 		Py2 = P2.details()[1];
 		angle = P2.details()[2];
-		name = P1.point_name() + "->" + P2.point_name();
+		
+		a = Py2 - Py1;
+		b = Px1 - Px2;
+		c = (double) Math.round(1 / Math.tan(angle) * Math.sqrt( Math.pow(Py2 - Py1,2) + Math.pow(Px2 - Px1,2) )* 1000) / 1000;
+		d = Py1 * Px2 - Px1 * Py2;
+		
+		// some simplification
+		if(d != 0.0 & c == 0.0 & b == 0.0 & a != 0.0) { 	
+			d = d / a;
+			a = 1;
+		}
+		if(d != 0.0 & c == 0.0 & b != 0.0 & a == 0.0) {
+			d = d / b;
+			b = 1;
+		}
+		
+		
+		if(P1.point_name() == "Default point" &
+				P2.point_name() == "Default point") {
+			name = "Default Plan";
+		}else {
+			name = P1.point_name() + "->" + P2.point_name();
+		}
+		
 	}
+	
 
 	// donne la partie "a" de ax+by+cz+d = 0
 	public double plana() {
-		return (Py2 - Py1);		
+		return a;			
 	}
 
 	// donne la partie "b" de ax+by+cz+d = 0
 	public double planb() {
-		return (Px1 - Px2);		
+		return b;
 	}
 
 	// donne la partie "c" de ax+by+cz+d = 0
 	public double planc() {
-		double d = 1 / Math.tan(angle) * Math.sqrt( Math.pow(Py2 - Py1,2) + Math.pow(Px2 - Px1,2) ) ;
-		return ((double)Math.round(d * 1000) / 1000);		
+		return c;	
+					
 	}
 
 	// donne la partie "d" de ax+by+cz+d = 0
 	public double pland() {
-		return ( Py1 * Px2 - Px1 * Py2  );		
+		return d;				
 	}
 
 	public String plan_name() {
@@ -48,25 +74,44 @@ public class Plan {
 
 
 	public boolean check_equal(Plan P) {
-		return( (plana() == P.plana()) && 
-				(planb() == P.planb()) && 
-				(planc() == P.planc()) && 
-				(pland() == P.pland())  );
+		return( (a == P.plana()) && 
+				(b == P.planb()) && 
+				(c == P.planc()) && 
+				(d == P.pland())  );
 	}
 
 	public boolean check_parallel(Plan P) {
 		
 		double lambda = 0.0;
 		if(P.plana() != 0) {
-			lambda = plana() / P.plana();
-			return( planb() / P.planb() == lambda &&
-					planc() / P.planc() == lambda );
+			lambda = a / P.plana();
+			return( b / P.planb() == lambda &&
+					c / P.planc() == lambda );
 		}else if(P.planb() != 0) {
-			lambda = planb() / P.planb();
-			return(plana() == 0 &&  planc() / P.planc() == lambda );
+			lambda = b / P.planb();
+			return(a == 0 &&  c / P.planc() == lambda );
 		}else {
-			return(plana() == 0 && planb() == 0);
+			return(a == 0 && b == 0);
 		}
+	}
+
+	public boolean check_perpendicular(Plan P) {
+		
+		return(a  * P.plana() + b * P.planb() + c * P.planc() == 0.0);
+	}
+
+	public boolean check_vertical() {
+		
+		return( (d != 0.0 & c == 0.0 & b == 0.0 & a != 0.0)  |
+				(d != 0.0 & c == 0.0 & b != 0.0 & a == 0.0)  |
+				(d != 0.0 & c == 0.0 & b != 0.0 & a != 0.0) );			
+	}
+
+	public boolean checkreal() {
+		
+		return( ! (d == 0.0 & c == 0.0 & b == 0.0 & a != 0.0)  |
+				! (d == 0.0 & c == 0.0 & b != 0.0 & a == 0.0) |
+				! (d == 0.0 & c != 0.0 & b == 0.0 & a == 0.0));			
 	}
 	
 	
@@ -74,10 +119,10 @@ public class Plan {
 
 		double[] coordinates = new double[4];
 
-		coordinates[0] = plana();
-		coordinates[1] = planb();
-		coordinates[2] = planc();
-		coordinates[3] = pland();
+		coordinates[0] = a;
+		coordinates[1] = b;
+		coordinates[2] = c;
+		coordinates[3] = d;
 
 		return coordinates;
 	}
@@ -85,9 +130,9 @@ public class Plan {
 
 	public String plan_details() {
 		return(name + ": "+
-				String.valueOf(  (double)Math.round(plana()*1000)/1000 ) + "*x  +  " +
-				String.valueOf(  (double)Math.round(planb()*1000)/1000 ) + "*y  +  " +
-				String.valueOf(  (double)Math.round(planc()*1000)/1000 ) + "*z  +  " +
-				String.valueOf(  (double)Math.round(pland()*1000)/1000 ) + " = 0");
+				String.valueOf(  (double)Math.round(a*1000)/1000 ) + "*x  +  " +
+				String.valueOf(  (double)Math.round(b*1000)/1000 ) + "*y  +  " +
+				String.valueOf(  (double)Math.round(c*1000)/1000 ) + "*z  +  " +
+				String.valueOf(  (double)Math.round(d*1000)/1000 ) + " = 0");
 	}
 }

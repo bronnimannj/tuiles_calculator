@@ -18,12 +18,23 @@ public class Point {
 		if(angle_is_degree) {
 			angle = Math.toRadians(alpha);			
 		}else {
-			angle = Math.atan(alpha);	
+			angle = Math.atan(alpha/100);	
 		}
 
 	}
 	
-
+	public void set_coordonnee(int axis, double coordonnee) {
+		if(axis == 0) {
+			X = coordonnee;
+		}else if(axis == 1) {
+			Y = coordonnee;
+		}
+	}
+	
+	public double point_dist(Point P2) {
+		return( Math.sqrt(Math.pow(X - P2.details()[0], 2) + Math.pow(Y - P2.details()[1], 2)) );
+	}	
+	
 	// donne la partie "a" de ax+by+cz+d = 0
 	public double[] details() {
 		double[] point_details = new double[3];
@@ -51,7 +62,7 @@ public class Point {
 				" Rad  --  ( ou " +
 				String.valueOf( (double)Math.round( Math.toDegrees(angle) * 1000)/1000 ) + 
 				" deg ou " +
-				String.valueOf( (double)Math.round( Math.tan(angle) * 1000)/1000 ) + 
+				String.valueOf( (double)Math.round( Math.tan(angle) * 1000)/10 ) + 
 				" % )");
 	}
 }
