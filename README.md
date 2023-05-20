@@ -24,7 +24,7 @@ This repository contains the code created in Java hoping to create an app for bu
 5. for each part, calculate the number of tiles needed
 5. sum for the final results
 
-## Libraries used <a name="lib"><\a>
+## Libraries used <a name="lib"></a>
 
 TBC
 
