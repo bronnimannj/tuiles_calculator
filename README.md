@@ -11,7 +11,7 @@
 - [Status](#status)
 
 
-## Motivations <a name="motiv"><\a>
+## Motivations <a name="motiv"> <\a>
 
 This repository contains the code created in Java hoping to create an app for builders to count the number of tiles needed to cover a roof if the only thing you know about it are the X&Y coordinates of the corners or the roof and the angles of each part of the roof.
 
